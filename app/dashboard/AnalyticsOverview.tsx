@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Download } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import type { BreakdownEntry } from "@/lib/analyticsMath";
+import { toPng } from "html-to-image";
 import {
     Bar,
     BarChart,
@@ -33,7 +35,6 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import type { BreakdownEntry } from "@/lib/analyticsMath";
 
 type LinkAnalytics = {
     id: string;
@@ -232,8 +233,8 @@ export function AnalyticsOverview() {
         return summary.clicksOverTime.map((point) => ({
             ...point,
             label: new Date(point.date).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
+            month: "short",
+            day: "numeric",
             }),
         }));
     }, [summary]);
@@ -248,6 +249,30 @@ export function AnalyticsOverview() {
         }));
     }, [summary]);
 
+    const chartRef = useRef<HTMLDivElement>(null);
+    const platformChartRef = useRef<HTMLDivElement>(null);
+    const clicksPerLinkChartRef = useRef<HTMLDivElement>(null);
+
+    const handleDownloadChart = async (
+        ref: React.RefObject<HTMLDivElement | null>,
+        filename: string
+    ) => {
+        if (!ref.current) return;
+
+        try {
+            const dataUrl = await toPng(ref.current, {
+                pixelRatio: 2,
+                cacheBust: true,
+            });
+
+            const link = document.createElement("a");
+                link.download = filename;
+                link.href = dataUrl;
+                link.click();
+            } catch (error) {
+                console.error("Failed to download analytics chart:", error);
+            }
+        };
     const recentActivityLabel = summary?.recentActivity
         ? new Date(summary.recentActivity.createdAt).toLocaleString(undefined, {
               month: "short",
@@ -353,10 +378,23 @@ export function AnalyticsOverview() {
 
             <div className="grid gap-4 lg:grid-cols-2">
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             Clicks Over Time
                         </CardTitle>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                                handleDownloadChart(chartRef, "linkid-growth-chart.png")
+                            }
+                            disabled={loading || clicksOverTimeData.length === 0}
+                            aria-label="Download clicks over time chart"
+                            title="Download chart"
+                        >
+                            <Download className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
@@ -364,40 +402,61 @@ export function AnalyticsOverview() {
                         ) : clicksOverTimeData.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No click data yet.</p>
                         ) : (
-                            <ResponsiveContainer width="100%" height={280}>
-                                <LineChart data={clicksOverTimeData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="label" fontSize={12} />
-                                    <YAxis allowDecimals={false} fontSize={12} />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="totalClicks"
-                                        name="Total Clicks"
-                                        stroke="#6366f1"
-                                        strokeWidth={2}
-                                        dot={false}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="uniqueClicks"
-                                        name="Unique Clicks"
-                                        stroke="#22c55e"
-                                        strokeWidth={2}
-                                        dot={false}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+                            <div ref={chartRef} className="bg-background p-2">
+                                <ResponsiveContainer width="100%" height={280}>
+                                    <LineChart data={clicksOverTimeData}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="label" fontSize={12} />
+                                        <YAxis allowDecimals={false} fontSize={12} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="totalClicks"
+                                            name="Total Clicks"
+                                            stroke="#6366f1"
+                                            strokeWidth={2}
+                                            dot={false}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="uniqueClicks"
+                                            name="Unique Clicks"
+                                            stroke="#22c55e"
+                                            strokeWidth={2}
+                                            dot={false}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
                             Platform Performance
                         </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                                handleDownloadChart(
+                                    platformChartRef,
+                                    "linkid-platform-performance.png"
+                                )
+                            }
+                            disabled={
+                                loading ||
+                                !summary ||
+                                summary.platformPerformance.length === 0
+                            }
+                            aria-label="Download platform performance chart"
+                            title="Download chart"
+                        >
+                        <Download className="h-4 w-4" />
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
@@ -405,38 +464,55 @@ export function AnalyticsOverview() {
                         ) : !summary || summary.platformPerformance.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No platform data yet.</p>
                         ) : (
-                            <ResponsiveContainer width="100%" height={280}>
-                                <PieChart>
-                                    <Pie
-                                        data={summary.platformPerformance}
-                                        dataKey="totalClicks"
-                                        nameKey="platform"
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={90}
-                                        label={(entry) => String(entry.name ?? "")}
-                                    >
-                                        {summary.platformPerformance.map((entry, index) => (
-                                            <Cell
-                                                key={entry.platform}
-                                                fill={PIE_COLORS[index % PIE_COLORS.length]}
-                                            />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <div ref={platformChartRef} className="bg-background p-2">
+                                <ResponsiveContainer width="100%" height={280}>
+                                    <PieChart>
+                                        <Pie
+                                            data={summary.platformPerformance}
+                                            dataKey="totalClicks"
+                                            nameKey="platform"
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={90}
+                                            label={(entry) => String(entry.name ?? "")}
+                                        >
+                                            {summary.platformPerformance.map((entry, index) => (
+                                                <Cell
+                                                    key={entry.platform}
+                                                    fill={PIE_COLORS[index % PIE_COLORS.length]}
+                                                />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
             </div>
 
             <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                         Clicks Per Link
                     </CardTitle>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                            handleDownloadChart(
+                                clicksPerLinkChartRef,
+                                "linkid-clicks-per-link.png"
+                            )
+                        }
+                        disabled={loading || clicksPerLinkData.length === 0}
+                        aria-label="Download clicks per link chart"
+                        title="Download chart"
+                    >
+                        <Download className="h-4 w-4" />
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     {loading ? (
@@ -444,25 +520,27 @@ export function AnalyticsOverview() {
                     ) : clicksPerLinkData.length === 0 ? (
                         <p className="text-sm text-muted-foreground">No links yet.</p>
                     ) : (
-                        <ResponsiveContainer
-                            width="100%"
-                            height={Math.max(240, clicksPerLinkData.length * 40)}
-                        >
-                            <BarChart data={clicksPerLinkData} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" allowDecimals={false} fontSize={12} />
-                                <YAxis
-                                    type="category"
-                                    dataKey="label"
-                                    width={140}
-                                    fontSize={12}
-                                />
-                                <Tooltip />
-                                <Legend />
-                                <Bar dataKey="totalClicks" name="Total Clicks" fill="#6366f1" />
-                                <Bar dataKey="uniqueClicks" name="Unique Clicks" fill="#22c55e" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div ref={clicksPerLinkChartRef} className="bg-background p-2">
+                            <ResponsiveContainer
+                                width="100%"
+                                height={Math.max(240, clicksPerLinkData.length * 40)}
+                            >
+                                <BarChart data={clicksPerLinkData} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" allowDecimals={false} fontSize={12} />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="label"
+                                        width={140}
+                                        fontSize={12}
+                                    />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="totalClicks" name="Total Clicks" fill="#6366f1" />
+                                    <Bar dataKey="uniqueClicks" name="Unique Clicks" fill="#22c55e" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     )}
                 </CardContent>
             </Card>
