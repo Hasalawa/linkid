@@ -59,7 +59,7 @@ export default function CreateGroupDialog({
     }
 
     return (
-        <div className="rounded-lg border border-dashed border-primary/40 p-4 space-y-3 bg-primary/5">
+        <div className="max-h-[90vh] overflow-y-auto rounded-lg border border-dashed border-primary/40 p-4 space-y-3 bg-primary/5">
             <p className="text-sm font-medium">Create a new group</p>
             <Input
                 disabled={loading}
