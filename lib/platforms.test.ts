@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { validatePlatformUrl, isKnownPlatform } from "@/lib/platforms";
+import { validatePlatformUrl, isKnownPlatform, detectPlatform } from "@/lib/platforms";
 import { PLATFORMS } from "@/lib/constants";
 
 // --- isKnownPlatform ---
@@ -153,3 +153,13 @@ test("validatePlatformUrl rejects invalid YouTube URLs", () => {
     assert.equal(validatePlatformUrl(PLATFORMS.YOUTUBE, "https://youtube.com/@"), false);
 });
 
+
+test("validatePlatformUrl accepts GitLab profile URLs", () => {
+    assert.equal(validatePlatformUrl(PLATFORMS.GITLAB, "https://gitlab.com/username"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.GITLAB, "gitlab.com/username"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.GITLAB, "https://github.com/username"), false);
+});
+
+test("detectPlatform identifies GitLab URLs", () => {
+    assert.equal(detectPlatform("https://gitlab.com/username"), "gitlab");
+});
