@@ -154,6 +154,14 @@ test("validatePlatformUrl rejects invalid YouTube URLs", () => {
 });
 
 
+
+test("validatePlatformUrl accepts Behance profile URLs", () => {
+    assert.equal(validatePlatformUrl(PLATFORMS.BEHANCE, "https://behance.net/username"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.BEHANCE, "https://github.com/username"), false);
+});
+
+test("detectPlatform identifies Behance URLs", () => {
+    assert.equal(detectPlatform("https://behance.net/username"), "behance");
 test("validatePlatformUrl accepts Stack Overflow profile URLs", () => {
     assert.equal(validatePlatformUrl(PLATFORMS.STACKOVERFLOW, "https://stackoverflow.com/users/123456/jane"), true);
     assert.equal(validatePlatformUrl(PLATFORMS.STACKOVERFLOW, "stackoverflow.com/users/123456"), true);
