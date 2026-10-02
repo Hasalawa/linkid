@@ -155,6 +155,14 @@ test("validatePlatformUrl rejects invalid YouTube URLs", () => {
 
 
 
+test("validatePlatformUrl accepts Substack profile URLs", () => {
+    assert.equal(validatePlatformUrl(PLATFORMS.SUBSTACK, "https://author.substack.com"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.SUBSTACK, "https://substack.com/@author"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.SUBSTACK, "https://github.com/author"), false);
+});
+
+test("detectPlatform identifies Substack URLs", () => {
+    assert.equal(detectPlatform("https://author.substack.com"), "substack");
 test("validatePlatformUrl accepts Behance profile URLs", () => {
     assert.equal(validatePlatformUrl(PLATFORMS.BEHANCE, "https://behance.net/username"), true);
     assert.equal(validatePlatformUrl(PLATFORMS.BEHANCE, "https://github.com/username"), false);

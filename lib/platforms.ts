@@ -4,6 +4,7 @@ import { PLATFORMS } from "@/lib/constants";
 
 export type Platform =
     | "github"
+    | "substack"
     | "behance"
     | "stackoverflow"
     | "gitlab"
@@ -31,6 +32,7 @@ export type Platform =
 const PLATFORM_PATTERNS: Record<Platform, RegExp> = {
     github: /^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/?(\?.*)?$/i,
 
+    substack: /^https?:\/\/([A-Za-z0-9-]+\.substack\.com|(www\.)?substack\.com\/@?[A-Za-z0-9_-]+)\/?(\?.*)?$/i,
     behance: /^https?:\/\/(www\.)?behance\.net\/[A-Za-z0-9_-]+\/?(\?.*)?$/i,
     stackoverflow: /^https?:\/\/(www\.)?stackoverflow\.com\/users\/\d+(\/[A-Za-z0-9_.-]+)?\/?(\?.*)?$/i,
     gitlab: /^https?:\/\/(www\.)?gitlab\.com\/[A-Za-z0-9_.-]+\/?(\?.*)?$/i,
