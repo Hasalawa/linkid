@@ -4,6 +4,7 @@ import { PLATFORMS } from "@/lib/constants";
 
 export type Platform =
     | "github"
+    | "stackoverflow"
     | "gitlab"
     | "linkedin"
     | "leetcode"
@@ -29,6 +30,7 @@ export type Platform =
 const PLATFORM_PATTERNS: Record<Platform, RegExp> = {
     github: /^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/?(\?.*)?$/i,
 
+    stackoverflow: /^https?:\/\/(www\.)?stackoverflow\.com\/users\/\d+(\/[A-Za-z0-9_.-]+)?\/?(\?.*)?$/i,
     gitlab: /^https?:\/\/(www\.)?gitlab\.com\/[A-Za-z0-9_.-]+\/?(\?.*)?$/i,
 
     // Catch-all domain suffixes force immediate platform identification for paths like /feed or /jobs,

@@ -154,6 +154,14 @@ test("validatePlatformUrl rejects invalid YouTube URLs", () => {
 });
 
 
+test("validatePlatformUrl accepts Stack Overflow profile URLs", () => {
+    assert.equal(validatePlatformUrl(PLATFORMS.STACKOVERFLOW, "https://stackoverflow.com/users/123456/jane"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.STACKOVERFLOW, "stackoverflow.com/users/123456"), true);
+    assert.equal(validatePlatformUrl(PLATFORMS.STACKOVERFLOW, "https://stackoverflow.com/questions/1"), false);
+});
+
+test("detectPlatform identifies Stack Overflow URLs", () => {
+    assert.equal(detectPlatform("https://stackoverflow.com/users/123456/jane"), "stackoverflow");
 test("validatePlatformUrl accepts GitLab profile URLs", () => {
     assert.equal(validatePlatformUrl(PLATFORMS.GITLAB, "https://gitlab.com/username"), true);
     assert.equal(validatePlatformUrl(PLATFORMS.GITLAB, "gitlab.com/username"), true);
